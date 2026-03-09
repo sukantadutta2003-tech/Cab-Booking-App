@@ -1,11 +1,18 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './LandingPage.css';
 
+function getDashboard(role) {
+  if (role === 'DRIVER') return '/driver/dashboard';
+  if (role === 'ADMIN') return '/admin/dashboard';
+  return '/rider/dashboard';
+}
+
 export default function LandingPage() {
+  const { user } = useAuth();
   return (
     <div className="landing">
       <div className="landing-hero fade-in">
-        <div className="hero-badge">🚀 Phase 4 — Full Stack Live</div>
         <h1 className="hero-title">
           Your Ride,<br />
           <span className="gradient-text">On Demand</span>
@@ -15,8 +22,14 @@ export default function LandingPage() {
           Built for riders, drivers, and admins.
         </p>
         <div className="hero-actions">
-          <Link to="/register" className="btn btn-primary btn-lg">Get Started →</Link>
-          <Link to="/login" className="btn btn-secondary btn-lg">Sign In</Link>
+          {user ? (
+            <Link to={getDashboard(user.role)} className="btn btn-primary btn-lg">Go to Dashboard →</Link>
+          ) : (
+            <>
+              <Link to="/register" className="btn btn-primary btn-lg">Get Started →</Link>
+              <Link to="/login" className="btn btn-secondary btn-lg">Sign In</Link>
+            </>
+          )}
         </div>
       </div>
 
