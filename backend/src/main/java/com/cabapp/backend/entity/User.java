@@ -27,7 +27,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;  // RIDER, ADMIN
+    private Role role;  // RIDER, DRIVER, ADMIN
 
     @Column(nullable = false)
     private boolean active = true;
@@ -36,6 +36,6 @@ public class User {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public enum Role {
-        RIDER, ADMIN
+        RIDER, DRIVER, ADMIN
     }
 }

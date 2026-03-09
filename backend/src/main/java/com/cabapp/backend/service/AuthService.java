@@ -36,11 +36,7 @@ public class AuthService {
         user.setPhone(request.getPhone());
 
         String roleStr = request.getRole().toUpperCase();
-        if (roleStr.equals("DRIVER")) {
-            user.setRole(Role.RIDER); // User table role is RIDER; DRIVER is separate entity
-        } else {
-            user.setRole(Role.valueOf(roleStr));
-        }
+        user.setRole(Role.valueOf(roleStr));
 
         user = userRepository.save(user);
 
