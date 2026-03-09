@@ -28,6 +28,7 @@ public class DriverService {
     private final RideRepository rideRepository;
     private final UserRepository userRepository;
     private final RideService rideService;
+    private final PaymentService paymentService;
     private final SimpMessagingTemplate messagingTemplate;
 
     // === GET DRIVER ENTITY BY EMAIL ===
@@ -140,6 +141,10 @@ public class DriverService {
         driverRepository.save(driver);
 
         ride = rideRepository.save(ride);
+
+        // Auto-create a PENDING payment record for the completed ride
+        paymentService.initiatePayment(ride.getId());
+
         RideResponseDTO response = rideService.mapToDTO(ride);
         messagingTemplate.convertAndSend("/topic/ride/" + ride.getId(), response);
         return response;
