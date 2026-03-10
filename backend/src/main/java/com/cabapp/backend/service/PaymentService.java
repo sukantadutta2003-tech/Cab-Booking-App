@@ -28,9 +28,10 @@ public class PaymentService {
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new RuntimeException("Ride not found: " + rideId));
 
-        // Avoid duplicate payment records
-        if (paymentRepository.findByRideId(rideId).isPresent()) {
-            return paymentRepository.findByRideId(rideId).get();
+        // FIX #9: Store the Optional result to avoid querying the DB twice
+        var existingPayment = paymentRepository.findByRideId(rideId);
+        if (existingPayment.isPresent()) {
+            return existingPayment.get();
         }
 
         Payment payment = new Payment();

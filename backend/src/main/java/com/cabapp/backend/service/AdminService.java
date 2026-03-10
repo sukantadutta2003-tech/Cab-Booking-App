@@ -1,5 +1,6 @@
 package com.cabapp.backend.service;
 
+import com.cabapp.backend.entity.Payment.PaymentStatus;
 import com.cabapp.backend.entity.Ride.RideStatus;
 import com.cabapp.backend.repository.DriverRepository;
 import com.cabapp.backend.repository.PaymentRepository;
@@ -26,31 +27,30 @@ public class AdminService {
 
     // === PLATFORM STATS ===
     public Map<String, Object> getPlatformStats() {
-        long totalUsers    = userRepository.count();
-        long totalDrivers  = driverRepository.count();
-        long totalRides    = rideRepository.count();
-        long requested     = rideRepository.findByStatus(RideStatus.REQUESTED).size();
-        long inProgress    = rideRepository.findByStatus(RideStatus.IN_PROGRESS).size();
-        long completed     = rideRepository.findByStatus(RideStatus.COMPLETED).size();
-        long cancelled     = rideRepository.findByStatus(RideStatus.CANCELLED).size();
+        long totalUsers   = userRepository.count();
+        long totalDrivers = driverRepository.count();
+        long totalRides   = rideRepository.count();
 
-        double totalRevenue = paymentRepository.findAll()
-                .stream()
-                .filter(p -> p.getStatus() == com.cabapp.backend.entity.Payment.PaymentStatus.COMPLETED)
-                .mapToDouble(p -> p.getAmount() != null ? p.getAmount() : 0.0)
-                .sum();
+        // FIX #10: Use COUNT queries instead of loading all rows and calling .size()
+        long requested  = rideRepository.countByStatus(RideStatus.REQUESTED);
+        long inProgress = rideRepository.countByStatus(RideStatus.IN_PROGRESS);
+        long completed  = rideRepository.countByStatus(RideStatus.COMPLETED);
+        long cancelled  = rideRepository.countByStatus(RideStatus.CANCELLED);
+
+        // FIX #10: Use SUM query instead of loading all payments into memory
+        double totalRevenue = paymentRepository.sumAmountByStatus(PaymentStatus.COMPLETED);
 
         return Map.of(
-                "totalUsers",     totalUsers,
-                "totalDrivers",   totalDrivers,
-                "totalRides",     totalRides,
-                "rideBreakdown",  Map.of(
+                "totalUsers",    totalUsers,
+                "totalDrivers",  totalDrivers,
+                "totalRides",    totalRides,
+                "rideBreakdown", Map.of(
                         "REQUESTED",   requested,
                         "IN_PROGRESS", inProgress,
                         "COMPLETED",   completed,
                         "CANCELLED",   cancelled
                 ),
-                "totalRevenue",   Math.round(totalRevenue * 100.0) / 100.0
+                "totalRevenue",  Math.round(totalRevenue * 100.0) / 100.0
         );
     }
 

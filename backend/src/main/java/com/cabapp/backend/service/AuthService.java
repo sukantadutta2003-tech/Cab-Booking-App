@@ -29,6 +29,19 @@ public class AuthService {
             throw new RuntimeException("Email already registered: " + request.getEmail());
         }
 
+        // FIX #6: Validate driver-specific fields when role is DRIVER
+        if ("DRIVER".equalsIgnoreCase(request.getRole())) {
+            if (request.getVehicleNumber() == null || request.getVehicleNumber().isBlank()) {
+                throw new RuntimeException("Vehicle number is required for driver registration");
+            }
+            if (request.getVehicleType() == null || request.getVehicleType().isBlank()) {
+                throw new RuntimeException("Vehicle type is required for driver registration");
+            }
+            if (request.getLicenseNumber() == null || request.getLicenseNumber().isBlank()) {
+                throw new RuntimeException("License number is required for driver registration");
+            }
+        }
+
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
@@ -69,8 +82,16 @@ public class AuthService {
             throw new RuntimeException("Account is suspended");
         }
 
-        // Determine actual role (check if this user has a driver profile)
-        String role = driverRepository.existsByUserId(user.getId()) ? "DRIVER" : user.getRole().name();
+        // FIX #7: Only override to DRIVER role if the user's actual role is DRIVER.
+        // Previously, any user with a driver profile record (e.g. an ADMIN who also
+        // had a driver entry) would incorrectly receive a DRIVER token.
+        String role;
+        if (user.getRole() == Role.DRIVER && driverRepository.existsByUserId(user.getId())) {
+            role = "DRIVER";
+        } else {
+            role = user.getRole().name();
+        }
+
         String token = jwtService.generateToken(user.getEmail(), role);
 
         return new AuthResponse(token, user.getEmail(), user.getUsername(), role, user.getId());

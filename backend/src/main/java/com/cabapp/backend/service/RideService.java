@@ -98,7 +98,9 @@ public class RideService {
 
     // === FIND NEAREST DRIVER ===
     private Driver findNearestDriver(Double pickupLat, Double pickupLng) {
-        List<Driver> availableDrivers = driverRepository.findByStatus(Driver.DriverStatus.AVAILABLE);
+        // FIX #8: Use pessimistic write lock so two simultaneous bookRide calls
+        // cannot both read the same driver as AVAILABLE and double-assign them.
+        List<Driver> availableDrivers = driverRepository.findByStatusWithLock(Driver.DriverStatus.AVAILABLE);
         if (availableDrivers.isEmpty())
             return null;
 

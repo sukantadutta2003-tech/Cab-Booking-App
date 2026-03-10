@@ -102,7 +102,8 @@ public class DriverService {
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new RuntimeException("Ride not found: " + rideId));
 
-        if (!ride.getDriver().getId().equals(driver.getId())) {
+        // FIX #5: Null check before accessing ride.getDriver() to prevent NPE
+        if (ride.getDriver() == null || !ride.getDriver().getId().equals(driver.getId())) {
             throw new RuntimeException("This ride is not assigned to you");
         }
         if (ride.getStatus() != RideStatus.ACCEPTED) {
@@ -125,7 +126,8 @@ public class DriverService {
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new RuntimeException("Ride not found: " + rideId));
 
-        if (!ride.getDriver().getId().equals(driver.getId())) {
+        // FIX #5: Null check before accessing ride.getDriver() to prevent NPE
+        if (ride.getDriver() == null || !ride.getDriver().getId().equals(driver.getId())) {
             throw new RuntimeException("This ride is not assigned to you");
         }
         if (ride.getStatus() != RideStatus.IN_PROGRESS) {
