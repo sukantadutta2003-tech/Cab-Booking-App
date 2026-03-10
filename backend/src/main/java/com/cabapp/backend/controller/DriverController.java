@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,7 @@ public class DriverController {
     @PutMapping("/status")
     public ResponseEntity<Map<String, Object>> updateStatus(
             Authentication auth,
-            @RequestBody DriverStatusDTO dto) {
+            @Valid @RequestBody DriverStatusDTO dto) {
         return ResponseEntity.ok(driverService.updateStatus(auth.getName(), dto));
     }
 

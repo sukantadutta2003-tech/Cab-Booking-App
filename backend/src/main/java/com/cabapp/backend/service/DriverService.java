@@ -170,12 +170,11 @@ public class DriverService {
     // === EARNINGS SUMMARY ===
     public Map<String, Object> getEarnings(String driverEmail) {
         Driver driver = getDriverByEmail(driverEmail);
-        List<Ride> completedRides = rideRepository.findByDriverIdAndStatus(driver.getId(), RideStatus.COMPLETED);
         return Map.of(
                 "totalEarnings", driver.getTotalEarnings(),
                 "totalRides", driver.getTotalRides(),
                 "rating", driver.getRating(),
-                "completedRideCount", completedRides.size());
+                "completedRideCount", driver.getTotalRides());
     }
 
     // === MY RIDES (driver's full history) ===

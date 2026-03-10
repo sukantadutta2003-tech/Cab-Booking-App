@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class RideController {
     @PostMapping("/book")
     public ResponseEntity<RideResponseDTO> bookRide(
             Authentication auth,
-            @RequestBody RideRequestDTO request) {
+            @Valid @RequestBody RideRequestDTO request) {
         return ResponseEntity.ok(rideService.bookRide(auth.getName(), request));
     }
 

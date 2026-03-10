@@ -30,6 +30,6 @@ public class PaymentController {
         PaymentMethod method = request.getPaymentMethod() != null
                 ? request.getPaymentMethod()
                 : PaymentMethod.CASH;
-        return ResponseEntity.ok(paymentService.confirmPayment(rideId, method));
+        return ResponseEntity.ok(paymentService.confirmPayment(rideId, method, auth.getName()));
     }
 }

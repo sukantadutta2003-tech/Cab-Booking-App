@@ -7,6 +7,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Map;
@@ -20,11 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * → Driver AVAILABLE → Accept → Start → Complete → Pay → Rate → Check History
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:postgresql://localhost:5432/cabapp",
-        "spring.datasource.username=postgres",
-        "spring.datasource.password=sd2003"
-})
+@ActiveProfiles("test")
 class RideFlowIntegrationTest {
 
     @LocalServerPort
@@ -120,7 +117,7 @@ class RideFlowIntegrationTest {
         ResponseEntity<Map> rideResp = rest.postForEntity(
                 base() + "/api/rides/book",
                 new HttpEntity<>(rideReq, jsonHeaders(riderToken)), Map.class);
-        assertThat(rideResp.getStatusCode().is2xxSuccessful()).as("Book ride should succeed").isTrue();
+        if (!rideResp.getStatusCode().is2xxSuccessful()) System.out.println("ERROR: " + rideResp.getBody()); assertThat(rideResp.getStatusCode().is2xxSuccessful()).as("Book ride should succeed").isTrue();
 
         Map<String, Object> rideBody = rideResp.getBody();
         Long rideId = Long.valueOf(rideBody.get("id").toString());

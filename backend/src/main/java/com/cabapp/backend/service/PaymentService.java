@@ -45,9 +45,14 @@ public class PaymentService {
 
     // === CONFIRM PAYMENT (rider pays) ===
     @Transactional
-    public PaymentDTO confirmPayment(Long rideId, PaymentMethod method) {
+    public PaymentDTO confirmPayment(Long rideId, PaymentMethod method, String requesterEmail) {
         Payment payment = paymentRepository.findByRideId(rideId)
                 .orElseThrow(() -> new RuntimeException("No payment record found for ride: " + rideId));
+
+        // Verify the requester is the rider of this ride
+        if (!payment.getRide().getRider().getEmail().equals(requesterEmail)) {
+            throw new RuntimeException("You are not authorized to confirm this payment");
+        }
 
         if (payment.getStatus() == PaymentStatus.COMPLETED) {
             throw new RuntimeException("Payment already completed for ride: " + rideId);
