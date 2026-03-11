@@ -9,6 +9,7 @@ import BookRide from './pages/rider/BookRide';
 import RideHistory from './pages/rider/RideHistory';
 import DriverDashboard from './pages/driver/DriverDashboard';
 import PendingRides from './pages/driver/PendingRides';
+import DriverHistory from './pages/driver/DriverHistory';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -31,6 +32,7 @@ function App() {
         {/* Driver Routes */}
         <Route path="/driver/dashboard" element={<ProtectedRoute role="DRIVER"><DriverDashboard /></ProtectedRoute>} />
         <Route path="/driver/rides" element={<ProtectedRoute role="DRIVER"><PendingRides /></ProtectedRoute>} />
+        <Route path="/driver/history" element={<ProtectedRoute role="DRIVER"><DriverHistory /></ProtectedRoute>} />
 
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={<ProtectedRoute role="ADMIN"><AdminDashboard /></ProtectedRoute>} />

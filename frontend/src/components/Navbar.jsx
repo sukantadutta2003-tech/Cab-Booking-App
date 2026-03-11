@@ -14,7 +14,7 @@ export default function Navbar() {
   const links = user?.role === 'RIDER'
     ? [{ to: '/rider/dashboard', label: 'Dashboard' }, { to: '/rider/book', label: 'Book Ride' }, { to: '/rider/history', label: 'History' }]
     : user?.role === 'DRIVER'
-    ? [{ to: '/driver/dashboard', label: 'Dashboard' }, { to: '/driver/rides', label: 'Rides' }]
+    ? [{ to: '/driver/dashboard', label: 'Dashboard' }, { to: '/driver/rides', label: 'Rides' }, { to: '/driver/history', label: 'History' }]
     : user?.role === 'ADMIN'
     ? [{ to: '/admin/dashboard', label: 'Dashboard' }]
     : [];
