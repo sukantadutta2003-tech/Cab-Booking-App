@@ -178,7 +178,8 @@ public class DriverService {
                 "totalEarnings", driver.getTotalEarnings(),
                 "totalRides", driver.getTotalRides(),
                 "rating", driver.getRating(),
-                "completedRideCount", driver.getTotalRides());
+                "completedRideCount", driver.getTotalRides(),
+                "status", driver.getStatus());
     }
 
     // === MY RIDES (driver's full history) ===

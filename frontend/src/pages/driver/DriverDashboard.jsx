@@ -14,7 +14,11 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     Promise.all([getEarnings(), getDriverHistory()])
-      .then(([e, r]) => { setEarnings(e.data); setRides(r.data); })
+      .then(([e, r]) => { 
+        setEarnings(e.data); 
+        if (e.data.status) setStatus(e.data.status);
+        setRides(r.data); 
+      })
       .finally(() => setLoading(false));
   }, []);
 
