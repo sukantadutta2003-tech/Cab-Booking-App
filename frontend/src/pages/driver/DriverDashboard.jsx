@@ -53,6 +53,9 @@ export default function DriverDashboard() {
 
   if (loading) return <div className="spinner" />;
 
+  const activeRide = rides.find(r => ['ACCEPTED', 'IN_PROGRESS'].includes(r.status));
+  const historyRides = rides.filter(r => !['REQUESTED', 'ACCEPTED', 'IN_PROGRESS'].includes(r.status));
+
   return (
     <div className="page fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
@@ -81,6 +84,34 @@ export default function DriverDashboard() {
         </p>
       </div>
 
+      {activeRide && (
+        <div className="card fade-in" style={{ marginBottom: '28px', border: '1px solid var(--border-glow)' }}>
+          <h2 style={{ marginBottom: '16px' }}>🔴 Active Ride</h2>
+          <div className="grid-2" style={{ gap: '12px', marginBottom: '16px' }}>
+            <Info label="Pickup" value={activeRide.pickupLocation} />
+            <Info label="Drop" value={activeRide.dropLocation} />
+            <Info label="Status" value={<span className={sc(activeRide.status)}>{activeRide.status}</span>} />
+            <Info label="Fare" value={`₹${activeRide.fare}`} />
+            {activeRide.riderName && (
+              <Info label="Rider" value={`${activeRide.riderName}`} />
+            )}
+          </div>
+          
+          <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+            {activeRide.status === 'ACCEPTED' && (
+              <button className="btn btn-primary" onClick={() => handleRideAction(activeRide.id, 'start')}>
+                🚀 Start Ride
+              </button>
+            )}
+            {activeRide.status === 'IN_PROGRESS' && (
+              <button className="btn btn-success" onClick={() => handleRideAction(activeRide.id, 'complete')}>
+                🏁 Complete Ride
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Earnings Stats */}
       {earnings && (
         <div className="grid-4" style={{ marginBottom: '28px' }}>
@@ -99,15 +130,14 @@ export default function DriverDashboard() {
         </div>
       )}
 
-      {/* Ride History */}
       <h2 style={{ marginBottom: '16px' }}>📋 Ride History</h2>
       <div className="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Pickup → Drop</th><th>Status</th><th>Fare</th><th>Rider</th><th>Date</th><th>Action</th></tr></thead>
+          <thead><tr><th>#</th><th>Pickup → Drop</th><th>Status</th><th>Fare</th><th>Rider</th><th>Date</th></tr></thead>
           <tbody>
-            {rides.length === 0 ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No rides yet</td></tr>
-            ) : rides.map(r => (
+            {historyRides.length === 0 ? (
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No rides yet</td></tr>
+            ) : historyRides.map(r => (
               <tr key={r.id}>
                 <td>{r.id}</td>
                 <td>{r.pickupLocation} → {r.dropLocation}</td>
@@ -115,26 +145,20 @@ export default function DriverDashboard() {
                 <td>₹{r.fare}</td>
                 <td>{r.riderName || '—'}</td>
                 <td>{new Date(r.createdAt).toLocaleDateString()}</td>
-                <td>
-                  {r.status === 'ACCEPTED' && (
-                    <button className="btn btn-primary btn-sm" onClick={() => handleRideAction(r.id, 'start')}>
-                      🚀 Start
-                    </button>
-                  )}
-                  {r.status === 'IN_PROGRESS' && (
-                    <button className="btn btn-success btn-sm" onClick={() => handleRideAction(r.id, 'complete')}>
-                      🏁 Complete
-                    </button>
-                  )}
-                  {r.status !== 'ACCEPTED' && r.status !== 'IN_PROGRESS' && (
-                    <span style={{color: 'var(--text-muted)'}}>—</span>
-                  )}
-                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function Info({ label, value }) {
+  return (
+    <div>
+      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+      <div style={{ fontWeight: '600' }}>{value}</div>
     </div>
   );
 }
