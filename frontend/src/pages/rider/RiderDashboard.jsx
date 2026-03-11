@@ -23,7 +23,7 @@ export default function RiderDashboard() {
     try {
       const { data } = await getRideHistory();
       setRides(data);
-      const active = data.find(r => ['REQUESTED','ACCEPTED','IN_PROGRESS'].includes(r.status));
+      const active = data.find(r => ['REQUESTED','ACCEPTED','IN_PROGRESS','COMPLETED'].includes(r.status));
       setActiveRide(active || null);
       if (active) {
         try { const p = await getPayment(active.id); setPayment(p.data); } catch {}
