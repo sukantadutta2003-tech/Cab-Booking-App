@@ -38,6 +38,7 @@ export default function DriverDashboard() {
         setMsg('✅ Ride Started!');
       } else if (action === 'complete') {
         await completeRide(rideId);
+        setStatus('AVAILABLE');
         setMsg('✅ Ride Completed! Pending Payment.');
       }
       
@@ -105,7 +106,7 @@ export default function DriverDashboard() {
           <thead><tr><th>#</th><th>Pickup → Drop</th><th>Status</th><th>Fare</th><th>Rider</th><th>Date</th><th>Action</th></tr></thead>
           <tbody>
             {rides.length === 0 ? (
-              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No rides yet</td></tr>
+              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No rides yet</td></tr>
             ) : rides.map(r => (
               <tr key={r.id}>
                 <td>{r.id}</td>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getPendingRides, acceptRide, startRide, completeRide } from '../../api/driverApi';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -8,6 +9,7 @@ export default function PendingRides() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
+  const navigate = useNavigate();
 
   const stompRef = useRef(null);
 
@@ -47,6 +49,10 @@ export default function PendingRides() {
     setActionLoading(id + label);
     try {
       await fn(id);
+      if (fn === acceptRide) {
+        navigate('/driver'); // Redirect to dashboard to see active ride controls
+        return;
+      }
       setMsg(`✅ Ride #${id} ${label}`);
       load();
     } catch (e) { setMsg('❌ ' + (e.response?.data?.error || 'Action failed')); }

@@ -99,6 +99,8 @@ export default function RiderDashboard() {
 
   if (loading) return <div className="spinner" />;
 
+  const historyRides = rides.filter(r => ['COMPLETED', 'CANCELLED'].includes(r.status));
+
   return (
     <div className="page fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
@@ -172,7 +174,7 @@ export default function RiderDashboard() {
       )}
 
       <h2 style={{ marginBottom: '16px' }}>📋 Ride History</h2>
-      {rides.length === 0 ? (
+      {historyRides.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
           <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>No rides yet!</p>
           <Link to="/rider/book" className="btn btn-primary">Book Your First Ride</Link>
@@ -182,7 +184,7 @@ export default function RiderDashboard() {
           <table>
             <thead><tr><th>From → To</th><th>Status</th><th>Fare</th><th>Driver</th><th>Date</th></tr></thead>
             <tbody>
-              {rides.map(r => (
+              {historyRides.map(r => (
                 <tr key={r.id}>
                   <td>{r.pickupLocation} → {r.dropLocation}</td>
                   <td><span className={statusColor(r.status)}>{r.status}</span></td>
