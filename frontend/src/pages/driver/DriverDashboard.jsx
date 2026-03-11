@@ -130,26 +130,6 @@ export default function DriverDashboard() {
         </div>
       )}
 
-      <h2 style={{ marginBottom: '16px' }}>📋 Ride History</h2>
-      <div className="table-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Pickup → Drop</th><th>Status</th><th>Fare</th><th>Rider</th><th>Date</th></tr></thead>
-          <tbody>
-            {historyRides.length === 0 ? (
-              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No rides yet</td></tr>
-            ) : historyRides.map(r => (
-              <tr key={r.id}>
-                <td>{r.id}</td>
-                <td>{r.pickupLocation} → {r.dropLocation}</td>
-                <td><span className={sc(r.status)}>{r.status}</span></td>
-                <td>₹{r.fare}</td>
-                <td>{r.riderName || '—'}</td>
-                <td>{new Date(r.createdAt).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

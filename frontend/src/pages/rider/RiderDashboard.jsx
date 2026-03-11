@@ -173,30 +173,6 @@ export default function RiderDashboard() {
         </div>
       )}
 
-      <h2 style={{ marginBottom: '16px' }}>📋 Ride History</h2>
-      {historyRides.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>No rides yet!</p>
-          <Link to="/rider/book" className="btn btn-primary">Book Your First Ride</Link>
-        </div>
-      ) : (
-        <div className="table-wrap">
-          <table>
-            <thead><tr><th>From → To</th><th>Status</th><th>Fare</th><th>Driver</th><th>Date</th></tr></thead>
-            <tbody>
-              {historyRides.map(r => (
-                <tr key={r.id}>
-                  <td>{r.pickupLocation} → {r.dropLocation}</td>
-                  <td><span className={statusColor(r.status)}>{r.status}</span></td>
-                  <td>₹{r.fare}</td>
-                  <td>{r.driverName || '—'}</td>
-                  <td>{new Date(r.createdAt).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 }
