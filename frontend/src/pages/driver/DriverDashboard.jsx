@@ -60,7 +60,7 @@ export default function DriverDashboard() {
     <div className="page fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div><h1>Driver Dashboard</h1><p className="subtitle">Manage your rides & earnings</p></div>
-        <Link to="/driver/rides" className="btn btn-primary">🚗 Pending Rides</Link>
+        <Link to="/driver/rides" className="btn btn-primary">Pending Rides</Link>
       </div>
 
       {msg && <div className="alert alert-info">{msg}</div>}

@@ -105,7 +105,7 @@ export default function RiderDashboard() {
     <div className="page fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
         <div><h1>Rider Dashboard</h1><p className="subtitle">Your rides & activity</p></div>
-        <Link to="/rider/book" className="btn btn-primary">🚖 Book New Ride</Link>
+        <Link to="/rider/book" className="btn btn-primary">Book New Ride</Link>
       </div>
 
       {msg && <div className="alert alert-info" onClick={() => setMsg('')}>{msg}</div>}
