@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
-import { updateStatus, getEarnings, getDriverHistory } from '../../api/driverApi';
+import { updateStatus, getEarnings, getDriverHistory, startRide, completeRide } from '../../api/driverApi';
 
 const STATUS_OPTIONS = ['AVAILABLE', 'OFFLINE'];
 const sc = (s) => `badge badge-${s?.toLowerCase()}`;
@@ -25,6 +25,25 @@ export default function DriverDashboard() {
       setMsg(`✅ Status updated to ${newStatus}`);
       setTimeout(() => setMsg(''), 3000);
     } catch (e) { setMsg('❌ ' + (e.response?.data?.error || 'Failed')); }
+  };
+
+  const handleRideAction = async (rideId, action) => {
+    try {
+      if (action === 'start') {
+        await startRide(rideId);
+        setMsg('✅ Ride Started!');
+      } else if (action === 'complete') {
+        await completeRide(rideId);
+        setMsg('✅ Ride Completed! Pending Payment.');
+      }
+      
+      // Refresh history
+      const r = await getDriverHistory();
+      setRides(r.data);
+      setTimeout(() => setMsg(''), 3000);
+    } catch (e) {
+      setMsg('❌ ' + (e.response?.data?.error || 'Action failed'));
+    }
   };
 
   if (loading) return <div className="spinner" />;
@@ -79,7 +98,7 @@ export default function DriverDashboard() {
       <h2 style={{ marginBottom: '16px' }}>📋 Ride History</h2>
       <div className="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Pickup → Drop</th><th>Status</th><th>Fare</th><th>Rider</th><th>Date</th></tr></thead>
+          <thead><tr><th>#</th><th>Pickup → Drop</th><th>Status</th><th>Fare</th><th>Rider</th><th>Date</th><th>Action</th></tr></thead>
           <tbody>
             {rides.length === 0 ? (
               <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No rides yet</td></tr>
@@ -91,6 +110,21 @@ export default function DriverDashboard() {
                 <td>₹{r.fare}</td>
                 <td>{r.riderName || '—'}</td>
                 <td>{new Date(r.createdAt).toLocaleDateString()}</td>
+                <td>
+                  {r.status === 'ACCEPTED' && (
+                    <button className="btn btn-primary btn-sm" onClick={() => handleRideAction(r.id, 'start')}>
+                      🚀 Start
+                    </button>
+                  )}
+                  {r.status === 'IN_PROGRESS' && (
+                    <button className="btn btn-success btn-sm" onClick={() => handleRideAction(r.id, 'complete')}>
+                      🏁 Complete
+                    </button>
+                  )}
+                  {r.status !== 'ACCEPTED' && r.status !== 'IN_PROGRESS' && (
+                    <span style={{color: 'var(--text-muted)'}}>—</span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
