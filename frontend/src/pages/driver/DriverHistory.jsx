@@ -24,7 +24,7 @@ export default function DriverHistory() {
     <div className="page fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
         <div>
-          <h1>📋 Ride History</h1>
+          <h1>Ride History</h1>
           <p className="subtitle">All your past rides</p>
         </div>
         <Link to="/driver" className="btn btn-secondary">← Back to Dashboard</Link>
