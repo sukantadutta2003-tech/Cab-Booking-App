@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { getRideHistory } from '../../api/rideApi';
 import { getPayment, confirmPayment } from '../../api/paymentApi';
-import { submitRating } from '../../api/ratingApi';
+import { submitRating, getRatingForRide } from '../../api/ratingApi';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -23,11 +23,31 @@ export default function RiderDashboard() {
     try {
       const { data } = await getRideHistory();
       setRides(data);
-      const active = data.find(r => ['REQUESTED','ACCEPTED','IN_PROGRESS','COMPLETED'].includes(r.status));
-      setActiveRide(active || null);
-      if (active) {
-        try { const p = await getPayment(active.id); setPayment(p.data); } catch {}
+      
+      let currentActive = null;
+      let pData = null;
+      let rDone = false;
+      
+      for (const r of data) {
+        if (['REQUESTED','ACCEPTED','IN_PROGRESS'].includes(r.status)) {
+          currentActive = r;
+          try { const p = await getPayment(r.id); pData = p.data; } catch {}
+          break; // found ongoing
+        } else if (r.status === 'COMPLETED' && !currentActive) {
+          try { const p = await getPayment(r.id); pData = p.data; } catch {}
+          try { await getRatingForRide(r.id); rDone = true; } catch {}
+          
+          // Keep it as active ride ONLY if payment is pending or rating is missing
+          if (!pData || pData.status !== 'COMPLETED' || !rDone) {
+             currentActive = r;
+             break;
+          }
+        }
       }
+      
+      setActiveRide(currentActive);
+      setPayment(pData);
+      setRatingDone(rDone);
     } finally { setLoading(false); }
   };
 
