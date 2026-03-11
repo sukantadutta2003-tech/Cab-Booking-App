@@ -12,20 +12,17 @@ export default function Navbar() {
   };
 
   const links = user?.role === 'RIDER'
-    ? [{ to: '/rider/dashboard', label: '🏠 Dashboard' }, { to: '/rider/book', label: '🚖 Book Ride' }, { to: '/rider/history', label: '📋 History' }]
+    ? [{ to: '/rider/dashboard', label: 'Dashboard' }, { to: '/rider/book', label: 'Book Ride' }, { to: '/rider/history', label: 'History' }]
     : user?.role === 'DRIVER'
-    ? [{ to: '/driver/dashboard', label: '🏠 Dashboard' }, { to: '/driver/rides', label: '🚗 Rides' }]
+    ? [{ to: '/driver/dashboard', label: 'Dashboard' }, { to: '/driver/rides', label: 'Rides' }]
     : user?.role === 'ADMIN'
-    ? [{ to: '/admin/dashboard', label: '📊 Dashboard' }]
+    ? [{ to: '/admin/dashboard', label: 'Dashboard' }]
     : [];
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-brand">
-        <span className="brand-icon">🚕</span>
-        <span>CabApp</span>
-      </Link>
       <div className="navbar-links">
+        <Link to="/" className="nav-link">Home</Link>
         {links.map(l => <Link key={l.to} to={l.to} className="nav-link">{l.label}</Link>)}
       </div>
       <div className="navbar-actions">
