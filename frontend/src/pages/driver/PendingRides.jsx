@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getPendingRides, acceptRide, startRide, completeRide } from '../../api/driverApi';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 export default function PendingRides() {
   const [rides, setRides] = useState([]);
@@ -7,12 +9,39 @@ export default function PendingRides() {
   const [msg, setMsg] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
 
+  const stompRef = useRef(null);
+
   const load = () => {
     setLoading(true);
     getPendingRides().then(r => setRides(r.data)).finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+    
+    const client = new Client({
+      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      reconnectDelay: 5000,
+      onConnect: () => {
+        client.subscribe('/topic/rides/new', (message) => {
+          const update = JSON.parse(message.body);
+          if (update.status === 'REQUESTED') {
+            setRides(prev => {
+              if (prev.find(r => r.id === update.id)) return prev;
+              return [update, ...prev];
+            });
+          } else {
+            // Remove the ride if it was accepted or cancelled by someone else
+            setRides(prev => prev.filter(r => r.id !== update.id));
+          }
+        });
+      },
+    });
+    client.activate();
+    stompRef.current = client;
+    
+    return () => client.deactivate();
+  }, []);
 
   const action = async (fn, id, label) => {
     setActionLoading(id + label);

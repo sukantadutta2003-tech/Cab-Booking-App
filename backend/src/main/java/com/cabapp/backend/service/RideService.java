@@ -76,43 +76,16 @@ public class RideService {
         ride.setFare(Math.round(fare * 100.0) / 100.0);
         ride.setStatus(RideStatus.REQUESTED);
 
-        // Try to find nearest available driver
-        Driver nearestDriver = findNearestDriver(request.getPickupLat(), request.getPickupLng());
-        if (nearestDriver != null) {
-            ride.setDriver(nearestDriver);
-            ride.setStatus(RideStatus.ACCEPTED);
-            ride.setAcceptedAt(LocalDateTime.now());
-            nearestDriver.setStatus(Driver.DriverStatus.BUSY);
-            driverRepository.save(nearestDriver);
-        }
-
         ride = rideRepository.save(ride);
 
         RideResponseDTO response = mapToDTO(ride);
 
-        // Notify via WebSocket
+        // Broadcast to all drivers so anyone can claim it
+        messagingTemplate.convertAndSend("/topic/rides/new", response);
+        // Also notify the specific rider
         messagingTemplate.convertAndSend("/topic/ride/" + ride.getId(), response);
 
         return response;
-    }
-
-    // === FIND NEAREST DRIVER ===
-    private Driver findNearestDriver(Double pickupLat, Double pickupLng) {
-        // FIX #8: Use pessimistic write lock so two simultaneous bookRide calls
-        // cannot both read the same driver as AVAILABLE and double-assign them.
-        List<Driver> availableDrivers = driverRepository.findByStatusWithLock(Driver.DriverStatus.AVAILABLE);
-        if (availableDrivers.isEmpty())
-            return null;
-
-        if (pickupLat == null || pickupLng == null) {
-            return availableDrivers.get(0); // no coords → just pick first
-        }
-
-        return availableDrivers.stream()
-                .filter(d -> d.getCurrentLat() != null && d.getCurrentLng() != null)
-                .min(Comparator.comparingDouble(
-                        d -> calculateDistanceKm(pickupLat, pickupLng, d.getCurrentLat(), d.getCurrentLng())))
-                .orElse(availableDrivers.get(0)); // fallback: first available
     }
 
     // === GET RIDE BY ID ===
@@ -147,6 +120,7 @@ public class RideService {
         ride = rideRepository.save(ride);
         RideResponseDTO response = mapToDTO(ride);
         messagingTemplate.convertAndSend("/topic/ride/" + ride.getId(), response);
+        messagingTemplate.convertAndSend("/topic/rides/new", response);
         return response;
     }
 

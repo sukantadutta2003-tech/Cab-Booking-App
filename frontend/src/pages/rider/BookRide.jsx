@@ -8,7 +8,6 @@ export default function BookRide() {
     pickupLocation: '', dropLocation: '',
     pickupLat: '', pickupLng: '', dropLat: '', dropLng: '',
   });
-  const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,35 +26,9 @@ export default function BookRide() {
         dropLng: form.dropLng ? parseFloat(form.dropLng) : null,
       };
       const { data } = await bookRide(payload);
-      setResult(data);
-    } catch (e) { setError(e.response?.data?.error || 'Booking failed'); }
-    finally { setLoading(false); }
+      navigate('/rider/dashboard');
+    } catch (e) { setError(e.response?.data?.error || 'Booking failed'); setLoading(false); }
   };
-
-  if (result) return (
-    <div className="page-sm fade-in" style={{ marginTop: '32px' }}>
-      <div className="card" style={{ border: '1px solid rgba(16,185,129,0.4)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <div style={{ fontSize: '48px' }}>🎉</div>
-          <h2>Ride Booked!</h2>
-          <p className="subtitle">Your ride has been successfully created</p>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Row label="Status" value={<span className={`badge badge-${result.status.toLowerCase()}`}>{result.status}</span>} />
-          <Row label="Pickup" value={result.pickupLocation} />
-          <Row label="Drop" value={result.dropLocation} />
-          <Row label="Distance" value={`${result.distanceKm?.toFixed(2)} km`} />
-          <Row label="Fare" value={<span style={{ color: 'var(--success)', fontWeight: '700', fontSize: '18px' }}>₹{result.fare}</span>} />
-          {result.driverName && <Row label="Driver" value={`${result.driverName} • ${result.vehicleNumber} (${result.vehicleType})`} />}
-          {!result.driverName && <div className="alert alert-info">⏳ Waiting for a driver to accept your ride...</div>}
-        </div>
-        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-          <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setResult(null)}>Book Another</button>
-          <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => navigate('/rider/dashboard')}>Go to Dashboard</button>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="page-sm fade-in" style={{ marginTop: '32px' }}>
@@ -79,15 +52,6 @@ export default function BookRide() {
           </button>
         </form>
       </div>
-    </div>
-  );
-}
-
-function Row({ label, value }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-      <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{label}</span>
-      <span style={{ fontWeight: '500' }}>{value}</span>
     </div>
   );
 }

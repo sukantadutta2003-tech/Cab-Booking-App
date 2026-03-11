@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { getRideHistory } from '../../api/rideApi';
+import { getRideHistory, cancelRide } from '../../api/rideApi';
 import { getPayment, confirmPayment } from '../../api/paymentApi';
 import { submitRating, getRatingForRide } from '../../api/ratingApi';
 import { Client } from '@stomp/stompjs';
@@ -79,6 +79,15 @@ export default function RiderDashboard() {
     } catch (e) { setMsg('❌ ' + (e.response?.data?.error || 'Payment failed')); }
   };
 
+  const handleCancel = async () => {
+    try {
+      if (!confirm('Are you sure you want to cancel this ride?')) return;
+      await cancelRide(activeRide.id);
+      setMsg('✅ Ride cancelled successfully.');
+      load();
+    } catch (e) { setMsg('❌ ' + (e.response?.data?.error || 'Failed to cancel')); }
+  };
+
   const handleRating = async () => {
     try {
       await submitRating({ rideId: activeRide.id, stars: rating.stars, comment: rating.comment });
@@ -107,8 +116,25 @@ export default function RiderDashboard() {
             <Info label="Drop" value={activeRide.dropLocation} />
             <Info label="Status" value={<span className={statusColor(activeRide.status)}>{activeRide.status}</span>} />
             <Info label="Fare" value={`₹${activeRide.fare}`} />
-            {activeRide.driverName && <Info label="Driver" value={`${activeRide.driverName} • ${activeRide.vehicleNumber}`} />}
+            {activeRide.driverName ? (
+              <Info label="Driver" value={`${activeRide.driverName} • ${activeRide.vehicleNumber}`} />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ color: 'var(--primary)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></span>
+                  Looking for drivers...
+                </div>
+              </div>
+            )}
           </div>
+          
+          {(activeRide.status === 'REQUESTED' || activeRide.status === 'ACCEPTED') && (
+            <div style={{ marginTop: '16px' }}>
+              <button className="btn btn-secondary btn-sm" onClick={handleCancel}>
+                Cancel Ride
+              </button>
+            </div>
+          )}
 
           {activeRide.status === 'COMPLETED' && (
             <>

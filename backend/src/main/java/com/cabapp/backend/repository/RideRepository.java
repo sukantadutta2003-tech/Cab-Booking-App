@@ -5,6 +5,9 @@ import com.cabapp.backend.entity.Ride.RideStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
+import java.util.Optional;
 
 import java.util.List;
 
@@ -20,4 +23,8 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // FIX #10: COUNT query — avoids loading all rows into memory just to call .size()
     @Query("SELECT COUNT(r) FROM Ride r WHERE r.status = :status")
     long countByStatus(@Param("status") RideStatus status);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Ride r WHERE r.id = :id")
+    Optional<Ride> findByIdWithLock(@Param("id") Long id);
 }

@@ -50,7 +50,9 @@ public class DriverService {
     public RideResponseDTO acceptRide(Long rideId, String driverEmail) {
         Driver driver = getDriverByEmail(driverEmail);
 
-        Ride ride = rideRepository.findById(rideId)
+        // FIX #8: Use pessimistic write lock so two simultaneous acceptRide calls
+        // cannot both read the same ride as REQUESTED and double-assign it.
+        Ride ride = rideRepository.findByIdWithLock(rideId)
                 .orElseThrow(() -> new RuntimeException("Ride not found: " + rideId));
 
         if (ride.getStatus() != RideStatus.REQUESTED) {
@@ -70,6 +72,7 @@ public class DriverService {
         ride = rideRepository.save(ride);
         RideResponseDTO response = rideService.mapToDTO(ride);
         messagingTemplate.convertAndSend("/topic/ride/" + ride.getId(), response);
+        messagingTemplate.convertAndSend("/topic/rides/new", response);
         return response;
     }
 
@@ -92,6 +95,7 @@ public class DriverService {
         ride = rideRepository.save(ride);
         RideResponseDTO response = rideService.mapToDTO(ride);
         messagingTemplate.convertAndSend("/topic/ride/" + ride.getId(), response);
+        messagingTemplate.convertAndSend("/topic/rides/new", response);
         return response;
     }
 
