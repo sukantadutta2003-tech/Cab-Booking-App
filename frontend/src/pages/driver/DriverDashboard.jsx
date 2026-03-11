@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from 'react-router-dom';
 import { updateStatus, getEarnings, getDriverHistory, startRide, completeRide } from '../../api/driverApi';
+import LiveMap from '../../components/LiveMap';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 const STATUS_OPTIONS = ['AVAILABLE', 'OFFLINE'];
 const sc = (s) => `badge badge-${s?.toLowerCase()}`;
@@ -11,6 +14,9 @@ export default function DriverDashboard() {
   const [status, setStatus] = useState('OFFLINE');
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
+  const [driverLocation, setDriverLocation] = useState(null);
+
+  const stompClientRef = useRef(null);
 
   useEffect(() => {
     Promise.all([getEarnings(), getDriverHistory()])
@@ -21,6 +27,52 @@ export default function DriverDashboard() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  const activeRide = rides.find(r => ['ACCEPTED', 'IN_PROGRESS'].includes(r.status));
+
+  // WebSocket Location Publisher
+  useEffect(() => {
+    if (!activeRide) return;
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS((import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/ws'),
+      onConnect: () => {
+        stompClientRef.current = client;
+      }
+    });
+
+    client.activate();
+
+    let interval;
+    if (activeRide.status === 'IN_PROGRESS') {
+      // Simulate moving car coordinates for presentation
+      // (In production, you'd hook into navigator.geolocation.watchPosition)
+      let currentStep = 0;
+      interval = setInterval(() => {
+        currentStep++;
+        
+        // Very rough simulation: move slightly down and right from center of India
+        const simulatedLocation = {
+           lat: 20.5937 - (currentStep * 0.001), 
+           lng: 78.9629 + (currentStep * 0.001) 
+        };
+        
+        setDriverLocation(simulatedLocation);
+
+        if (stompClientRef.current?.connected) {
+          stompClientRef.current.publish({
+            destination: `/app/ride/${activeRide.id}/location`,
+            body: JSON.stringify(simulatedLocation)
+          });
+        }
+      }, 3000); // Broadcast every 3 seconds
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+      client.deactivate();
+    };
+  }, [activeRide?.id, activeRide?.status]);
 
   const handleStatusChange = async (newStatus) => {
     try {
@@ -53,7 +105,8 @@ export default function DriverDashboard() {
 
   if (loading) return <div className="spinner" />;
 
-  const activeRide = rides.find(r => ['ACCEPTED', 'IN_PROGRESS'].includes(r.status));
+  if (loading) return <div className="spinner" />;
+
   const historyRides = rides.filter(r => !['REQUESTED', 'ACCEPTED', 'IN_PROGRESS'].includes(r.status));
 
   return (
@@ -87,6 +140,15 @@ export default function DriverDashboard() {
       {activeRide && (
         <div className="card fade-in" style={{ marginBottom: '28px', border: '1px solid var(--border-glow)' }}>
           <h2 style={{ marginBottom: '16px' }}>🔴 Active Ride</h2>
+          
+          <div style={{ marginBottom: '20px' }}>
+            <LiveMap 
+              pickup={activeRide.pickupLocation} 
+              drop={activeRide.dropLocation} 
+              driverLocation={driverLocation} 
+            />
+          </div>
+
           <div className="grid-2" style={{ gap: '12px', marginBottom: '16px' }}>
             <Info label="Pickup" value={activeRide.pickupLocation} />
             <Info label="Drop" value={activeRide.dropLocation} />

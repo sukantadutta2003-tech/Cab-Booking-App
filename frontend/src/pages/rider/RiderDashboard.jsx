@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getRideHistory, cancelRide } from '../../api/rideApi';
 import { getPayment, confirmPayment } from '../../api/paymentApi';
 import { submitRating, getRatingForRide } from '../../api/ratingApi';
+import LiveMap from '../../components/LiveMap';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -12,6 +13,7 @@ export default function RiderDashboard() {
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeRide, setActiveRide] = useState(null);
+  const [driverLocation, setDriverLocation] = useState(null);
   const [payment, setPayment] = useState(null);
   const [payMethod, setPayMethod] = useState('CASH');
   const [rating, setRating] = useState({ stars: 5, comment: '' });
@@ -64,6 +66,12 @@ export default function RiderDashboard() {
           setActiveRide(data);
           if (data.status === 'COMPLETED') load();
         });
+        
+        // Listen for high-frequency GPS coordinate updates from the driver
+        client.subscribe(`/topic/ride/${activeRide.id}/location`, (msg) => {
+          const loc = JSON.parse(msg.body);
+          setDriverLocation(loc);
+        });
       },
     });
     client.activate();
@@ -113,6 +121,15 @@ export default function RiderDashboard() {
       {activeRide && (
         <div className="card" style={{ marginBottom: '28px', border: '1px solid var(--border-glow)' }}>
           <h2 style={{ marginBottom: '16px' }}>🔴 Active Ride</h2>
+          
+          <div style={{ marginBottom: '20px' }}>
+            <LiveMap 
+              pickup={activeRide.pickupLocation} 
+              drop={activeRide.dropLocation} 
+              driverLocation={driverLocation} 
+            />
+          </div>
+
           <div className="grid-2" style={{ gap: '12px', marginBottom: '16px' }}>
             <Info label="Pickup" value={activeRide.pickupLocation} />
             <Info label="Drop" value={activeRide.dropLocation} />
