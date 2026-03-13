@@ -9,11 +9,13 @@ const mapContainerStyle = {
 
 const defaultCenter = { lat: 20.5937, lng: 78.9629 }; // Center of India
 const CAR_ICON = 'https://maps.google.com/mapfiles/kml/shapes/cabs.png';
+const LIBRARIES = ['places'];
 
 export default function LiveMap({ pickup, drop, driverLocation }) {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: LIBRARIES
   });
 
   const [directions, setDirections] = useState(null);

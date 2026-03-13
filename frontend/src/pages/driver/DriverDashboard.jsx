@@ -30,7 +30,7 @@ export default function DriverDashboard() {
 
   const activeRide = rides.find(r => ['ACCEPTED', 'IN_PROGRESS'].includes(r.status));
 
-  // WebSocket Location Publisher
+  // WebSocket Location Publisher – follows the real route polyline!
   useEffect(() => {
     if (!activeRide) return;
 
@@ -38,38 +38,51 @@ export default function DriverDashboard() {
       webSocketFactory: () => new SockJS((import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/ws'),
       onConnect: () => {
         stompClientRef.current = client;
+
+        // Once connected, if ride is IN_PROGRESS, calculate the route and simulate driving along it
+        if (activeRide.status === 'IN_PROGRESS' && window.google) {
+          const directionsService = new window.google.maps.DirectionsService();
+          directionsService.route({
+            origin: activeRide.pickupLocation,
+            destination: activeRide.dropLocation,
+            travelMode: window.google.maps.TravelMode.DRIVING,
+          }, (result, status) => {
+            if (status === 'OK') {
+              // Extract all the lat/lng points along the route
+              const routePath = result.routes[0].overview_path.map(p => ({
+                lat: p.lat(), lng: p.lng()
+              }));
+              
+              let stepIndex = 0;
+              const interval = setInterval(() => {
+                if (stepIndex >= routePath.length) {
+                  clearInterval(interval);
+                  return;
+                }
+                const loc = routePath[stepIndex];
+                setDriverLocation(loc);
+
+                if (client.connected) {
+                  client.publish({
+                    destination: `/app/ride/${activeRide.id}/location`,
+                    body: JSON.stringify(loc)
+                  });
+                }
+                stepIndex++;
+              }, 2000); // Move every 2 seconds along the route
+
+              // Store interval for cleanup
+              stompClientRef.current._simInterval = interval;
+            }
+          });
+        }
       }
     });
 
     client.activate();
 
-    let interval;
-    if (activeRide.status === 'IN_PROGRESS') {
-      // Simulate moving car coordinates for presentation
-      // (In production, you'd hook into navigator.geolocation.watchPosition)
-      let currentStep = 0;
-      interval = setInterval(() => {
-        currentStep++;
-        
-        // Very rough simulation: move slightly down and right from center of India
-        const simulatedLocation = {
-           lat: 20.5937 - (currentStep * 0.001), 
-           lng: 78.9629 + (currentStep * 0.001) 
-        };
-        
-        setDriverLocation(simulatedLocation);
-
-        if (stompClientRef.current?.connected) {
-          stompClientRef.current.publish({
-            destination: `/app/ride/${activeRide.id}/location`,
-            body: JSON.stringify(simulatedLocation)
-          });
-        }
-      }, 3000); // Broadcast every 3 seconds
-    }
-
     return () => {
-      if (interval) clearInterval(interval);
+      if (stompClientRef.current?._simInterval) clearInterval(stompClientRef.current._simInterval);
       client.deactivate();
     };
   }, [activeRide?.id, activeRide?.status]);
